@@ -3,31 +3,34 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CV2Skills – Dossier de Compétences</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <title>CV2Skills – Convertisseur de CV</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #eef3f7;
+      background-color: #f9fbfd;
       margin: 0;
       padding: 0;
     }
     .container {
-      max-width: 900px;
+      max-width: 700px;
       margin: auto;
       padding: 2em;
       background: white;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
       border-radius: 10px;
       margin-top: 50px;
     }
-    h1, h2 {
+    h1 {
       text-align: center;
       color: #2c3e50;
     }
-    input[type="file"], button {
+    input[type="file"] {
       display: block;
       margin: 20px auto;
+    }
+    button {
+      display: block;
+      margin: auto;
       padding: 10px 20px;
       background-color: #2c3e50;
       color: white;
@@ -35,63 +38,31 @@
       border-radius: 5px;
       cursor: pointer;
     }
-    #preview {
-      margin-top: 30px;
-    }
-    .section {
-      margin-bottom: 40px;
-    }
-    .section h3 {
-      font-size: 22px;
-      color: #ffffff;
-      background: #2c3e50;
-      padding: 10px 20px;
-      border-radius: 20px;
-      width: fit-content;
-    }
-    .section ul {
-      list-style: none;
-      padding-left: 0;
-    }
-    .section ul li {
-      margin-bottom: 10px;
+    pre {
+      background: #f4f4f4;
       padding: 10px;
-      background: #f1f5fa;
-      border-radius: 10px;
+      overflow-x: auto;
     }
-    .lang-level {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-top: 5px;
-    }
-    .circle {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      background: #ccc;
-    }
-    .circle.active {
-      background: #2c3e50;
-    }
-    .cv-block-title {
-      font-weight: bold;
-      font-size: 18px;
-      color: #2c3e50;
-      margin-bottom: 2px;
-    }
-    .cv-block-desc {
-      font-size: 15px;
-      color: #555;
-      margin-bottom: 4px;
-      margin-left: 2px;
-    }
-    .cv-block-meta {
-      font-size: 13px;
-      color: #888;
-      margin-bottom: 2px;
-      margin-left: 2px;
-    }
+    .cv-section {
+  margin-top: 2em;
+}
+.cv-section h2 {
+  color: #2c3e50;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 5px;
+}
+.cv-entry {
+  margin-bottom: 1em;
+}
+.cv-entry strong {
+  display: inline-block;
+  min-width: 130px;
+  color: #2c3e50;
+}
+.cv-list {
+  padding-left: 1em;
+}
+
   </style>
 </head>
 <body>
@@ -100,20 +71,121 @@
     <p>Chargez votre CV pour le transformer automatiquement en un dossier de compétences.</p>
     <input type="file" id="cvFile" />
     <button onclick="sendCV()">Analyser</button>
-    <button onclick="downloadPDF()">Télécharger en PDF</button>
-
-    <div id="preview">
-      <h2>Prévisualisation du dossier de compétences</h2>
-      <div id="cvContent"></div>
-    </div>
+    <h2>Résultat :</h2>
+  <div id="output">Aucun fichier analysé.</div>
   </div>
 
   <script>
-    let jsonData = null;
+
+function renderCV(data) {
+  const output = document.getElementById('output');
+  output.innerHTML = '';
+
+  // Informations personnelles
+  const perso = data["Informations Personnelles"];
+  output.innerHTML += `
+    <div class="cv-section">
+      <h2>Informations Personnelles</h2>
+      <div><strong>Nom :</strong> ${perso.Nom}</div>
+      <div><strong>Prénom :</strong> ${perso.Prénom}</div>
+      <div><strong>Email :</strong> ${perso.Email}</div>
+      <div><strong>Téléphone :</strong> ${perso.Téléphone}</div>
+      <div><strong>Adresse :</strong> ${perso.Adresse}</div>
+    </div>
+  `;
+
+  // Compétences
+  output.innerHTML += `
+    <div class="cv-section">
+      <h2>Compétences Techniques</h2>
+      <ul class="cv-list">${data["Compétences Techniques"].map(c => `<li>${c}</li>`).join('')}</ul>
+    </div>
+  `;
+
+  // Langues
+  output.innerHTML += `
+    <div class="cv-section">
+      <h2>Langues</h2>
+      ${data.Langues.map(lang => `<div>${lang.Langue} - ${lang.Niveau}</div>`).join('')}
+    </div>
+  `;
+
+  // Méthodologies
+  if (data["Méthodologies"]?.length) {
+    output.innerHTML += `
+      <div class="cv-section">
+        <h2>Méthodologies</h2>
+        <ul class="cv-list">${data["Méthodologies"].map(m => `<li>${m}</li>`).join('')}</ul>
+      </div>
+    `;
+  }
+
+  // Expériences Clés Récentes
+  if (data["Expériences Clés Récentes"]?.length) {
+    output.innerHTML += `
+      <div class="cv-section">
+        <h2>Expériences Clés Récentes</h2>
+        ${data["Expériences Clés Récentes"].map(exp => `
+          <div class="cv-entry">
+            <strong>Année :</strong> ${exp.Année}<br>
+            <strong>Entreprise :</strong> ${exp.Entreprise}<br>
+            <strong>Poste :</strong> ${exp.Intitulé}<br>
+            <div>${exp.Détails}</div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  // Expériences professionnelles
+  if (data["Expériences Professionnelles"]?.length) {
+    output.innerHTML += `
+      <div class="cv-section">
+        <h2>Expériences Professionnelles</h2>
+        ${data["Expériences Professionnelles"].map(exp => `
+          <div class="cv-entry">
+            <strong>Poste :</strong> ${exp.Poste}<br>
+            <strong>Entreprise :</strong> ${exp.Entreprise}<br>
+            <strong>Période :</strong> ${exp.Période}<br>
+            <strong>Missions :</strong>
+            <ul class="cv-list">${exp.Missions.map(m => `<li>${m}</li>`).join('')}</ul>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  // Formations
+  if (data["Formation et Certifications"]?.length) {
+    output.innerHTML += `
+      <div class="cv-section">
+        <h2>Formation et Certifications</h2>
+        ${data["Formation et Certifications"].map(f => `
+          <div class="cv-entry">
+            <strong>Année :</strong> ${f.Année}<br>
+            <strong>Diplôme/Certification :</strong> ${f["Diplôme/Certification"]}<br>
+            <strong>Établissement :</strong> ${f.Établissement}
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  // Projets intéressants
+  if (data["Projets Intéressants"]?.length) {
+    output.innerHTML += `
+      <div class="cv-section">
+        <h2>Projets Intéressants</h2>
+        <ul class="cv-list">${data["Projets Intéressants"].map(p => `<li>${p}</li>`).join('')}</ul>
+      </div>
+    `;
+  }
+}
+
 
     async function sendCV() {
       const fileInput = document.getElementById('cvFile');
-      const cvContent = document.getElementById('cvContent');
+      const output = document.getElementById('output');
 
       if (!fileInput.files.length) {
         alert("Veuillez sélectionner un fichier.");
@@ -123,7 +195,7 @@
       const formData = new FormData();
       formData.append("cv", fileInput.files[0]);
 
-      cvContent.innerHTML = "<p>Analyse en cours...</p>";
+      output.textContent = "Analyse en cours...";
 
       try {
         const response = await fetch("https://cv2skills.onrender.com/upload", {
@@ -132,136 +204,10 @@
         });
 
         const data = await response.json();
-        if (data.success && data.data) {
-          jsonData = data.data;
-          displayCV(jsonData);
-        } else {
-          cvContent.innerHTML = `<p style="color:red;">Erreur : ${data.error}</p>`;
-        }
-      } catch (error) {
-        cvContent.innerHTML = `<p style="color:red;">Erreur : ${error.message}</p>`;
+        renderCV(data.data); // .data car ton JSON est encapsulé dans { data: {...}, success: true }
+          } catch (error) {
+        output.textContent = "Erreur : " + error.message;
       }
-    }
-
-    function displayCV(data) {
-  const container = document.getElementById("cvContent");
-  container.innerHTML = "";
-
-  // Titres harmonisés
-  const sectionTitles = {
-    certifications: "Certifications",
-    competences: "Compétences",
-    competences_techniques: "Compétences Techniques",
-    experience_professionnelle: "Expérience Professionnelle",
-    formation: "Formation",
-    informations_personnelles: "Informations Personnelles",
-    langues: "Langues",
-    methodologie: "Méthodologies",
-    projets: "Projets",
-    centres_interet: "Centres d'intérêt"
-  };
-
-  // Ordre d'affichage
-  const sectionOrder = [
-    "certifications",
-    "competences",
-    "competences_techniques",
-    "experience_professionnelle",
-    "formation",
-    "informations_personnelles",
-    "langues",
-    "methodologie",
-    "projets",
-    "centres_interet"
-  ];
-
-  sectionOrder.forEach(section => {
-    if (!data[section]) return;
-    const div = document.createElement("div");
-    div.className = "section";
-    const title = document.createElement("h3");
-    title.textContent = sectionTitles[section] || section;
-    div.appendChild(title);
-    const content = data[section];
-
-    // Cas des expériences, formations, projets, certifications (tableaux d'objets)
-    if (Array.isArray(content) && content.length && typeof content[0] === 'object') {
-      content.forEach(item => {
-        const block = document.createElement("div");
-        // Titre principal (poste, diplôme, projet, etc.)
-        let mainTitle = item.Poste || item.Diplôme || item.Titre || item.Description || item.Entreprise || item.Nom || item.Role || item['Titre du projet'] || item['Description du projet'] || item['Certification'] || null;
-        if (mainTitle) {
-          const t = document.createElement("div");
-          t.className = "cv-block-title";
-          t.textContent = mainTitle;
-          block.appendChild(t);
-        }
-        // Description (si présente)
-        if (item.Description && typeof item.Description === 'string') {
-          const d = document.createElement("div");
-          d.className = "cv-block-desc";
-          d.textContent = item.Description;
-          block.appendChild(d);
-        } else if (item.Description && Array.isArray(item.Description)) {
-          const d = document.createElement("div");
-          d.className = "cv-block-desc";
-          d.innerHTML = item.Description.map(desc => `<div>${desc}</div>`).join('');
-          block.appendChild(d);
-        }
-        // Autres infos (métadonnées)
-        Object.keys(item).forEach(key => {
-          if (["Poste","Diplôme","Titre","Description","Nom","Role","Titre du projet","Description du projet","Certification"].includes(key)) return;
-          if (item[key]) {
-            const meta = document.createElement("div");
-            meta.className = "cv-block-meta";
-            meta.innerHTML = `<strong>${key} :</strong> ${item[key]}`;
-            block.appendChild(meta);
-          }
-        });
-        div.appendChild(block);
-      });
-    }
-    // Cas des listes simples (compétences, méthodologies, etc.)
-    else if (Array.isArray(content)) {
-      const ul = document.createElement("ul");
-      content.forEach(item => {
-        const li = document.createElement("li");
-        li.textContent = item;
-        ul.appendChild(li);
-      });
-      div.appendChild(ul);
-    }
-    // Cas objet simple (informations personnelles)
-    else if (typeof content === 'object' && content !== null) {
-      const ul = document.createElement("ul");
-      for (const key in content) {
-        const li = document.createElement("li");
-        li.innerHTML = `<strong>${key} :</strong> ${content[key]}`;
-        ul.appendChild(li);
-      }
-      div.appendChild(ul);
-    }
-    // Cas texte simple
-    else if (typeof content === 'string') {
-      const p = document.createElement("p");
-      p.textContent = content;
-      div.appendChild(p);
-    }
-    container.appendChild(div);
-  });
-}
-
-
-    function downloadPDF() {
-      const element = document.getElementById("preview");
-      const opt = {
-        margin: 0.5,
-        filename: 'Dossier_de_competences.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 3 },
-        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-      };
-      html2pdf().set(opt).from(element).save();
     }
   </script>
 </body>

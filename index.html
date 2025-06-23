@@ -266,7 +266,8 @@ function exportToPDF() {
         const data = await response.json();
         renderCV(data.data); 
         injectIntoPreview(data.data);
-                 } catch (error) {
+        localStorage.setItem("cv_data", JSON.stringify(data.data));
+      } catch (error) {
         output.textContent = "Erreur : " + error.message;
       }
     }

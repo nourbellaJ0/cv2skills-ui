@@ -71,11 +71,56 @@
     <p>Chargez votre CV pour le transformer automatiquement en un dossier de compétences.</p>
     <input type="file" id="cvFile" />
     <button onclick="sendCV()">Analyser</button>
+    <button onclick="exportToPDF()">Télécharger en PDF</button>
     <h2>Résultat :</h2>
   <div id="output">Aucun fichier analysé.</div>
   </div>
+<iframe id="previewFrame" style="display:none; width:1000px; height:1400px;" src="page.html"></iframe>
 
   <script>
+function injectIntoPreview(cvData) {
+  const frame = document.getElementById('previewFrame');
+  frame.onload = () => {
+    const doc = frame.contentDocument || frame.contentWindow.document;
+
+    // Remplir les champs
+    doc.getElementById("nom_prenom").textContent = cvData["Informations Personnelles"].Prénom + " " + cvData["Informations Personnelles"].Nom;
+
+    doc.getElementById("competences").innerHTML =
+      "<h2>Compétences Techniques</h2><ul>" +
+      cvData["Compétences Techniques"].map(c => `<li>${c}</li>`).join('') +
+      "</ul>";
+
+    doc.getElementById("experience").innerHTML =
+      "<h2>Expériences Professionnelles</h2>" +
+      cvData["Expériences Professionnelles"].map(exp => `
+        <div>
+          <strong>${exp.Poste}</strong> chez <strong>${exp.Entreprise}</strong><br/>
+          ${exp.Période}<br/>
+          <ul>${exp.Missions.map(m => `<li>${m}</li>`).join('')}</ul>
+        </div>
+      `).join('');
+
+    doc.getElementById("formations").innerHTML =
+      "<h2>Formations et Certifications</h2>" +
+      cvData["Formation et Certifications"].map(f => `
+        <div>
+          ${f["Année"]} – ${f["Diplôme/Certification"]} à ${f["Établissement"]}
+        </div>
+      `).join('');
+
+    doc.getElementById("langues").innerHTML =
+      "<h2>Langues</h2>" +
+      cvData["Langues"].map(l => `
+        <div>${l.Langue} – ${l.Niveau}</div>
+      `).join('');
+
+    doc.getElementById("projets").innerHTML =
+      "<h2>Projets Intéressants</h2><ul>" +
+      cvData["Projets Intéressants"].map(p => `<li>${p}</li>`).join('') +
+      "</ul>";
+  };
+}
 
 function renderCV(data) {
   const output = document.getElementById('output');
@@ -182,6 +227,21 @@ function renderCV(data) {
   }
 }
 
+function exportToPDF() {
+  const frame = document.getElementById('previewFrame');
+  const frameDoc = frame.contentDocument || frame.contentWindow.document;
+  const content = frameDoc.body;
+
+  const opt = {
+    margin:       0,
+    filename:     'cv2skills.pdf',
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2 },
+    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().from(content).set(opt).save();
+}
 
     async function sendCV() {
       const fileInput = document.getElementById('cvFile');
@@ -204,11 +264,13 @@ function renderCV(data) {
         });
 
         const data = await response.json();
-        renderCV(data.data); // .data car ton JSON est encapsulé dans { data: {...}, success: true }
-          } catch (error) {
+        renderCV(data.data); 
+        injectIntoPreview(data.data);
+                 } catch (error) {
         output.textContent = "Erreur : " + error.message;
       }
     }
   </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </body>
 </html>

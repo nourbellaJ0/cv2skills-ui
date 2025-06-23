@@ -7,254 +7,75 @@
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f9fbfd;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      max-width: 700px;
-      margin: auto;
-      padding: 2em;
-      background: white;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      border-radius: 10px;
-      margin-top: 50px;
-    }
-    h1 {
+      background-color: #f9f9f9;
+      padding: 40px;
       text-align: center;
+    }
+
+    h1 {
       color: #2c3e50;
     }
+
     input[type="file"] {
       display: block;
       margin: 20px auto;
     }
+
     button {
-      display: block;
-      margin: auto;
-      padding: 10px 20px;
-      background-color: #2c3e50;
-      color: white;
+      background-color: #e63946;
+      color: #fff;
+      padding: 12px 24px;
       border: none;
       border-radius: 5px;
+      font-size: 16px;
       cursor: pointer;
+      margin-top: 20px;
     }
-    pre {
-      background: #f4f4f4;
-      padding: 10px;
-      overflow-x: auto;
-    }
-    .cv-section {
-  margin-top: 2em;
-}
-.cv-section h2 {
-  color: #2c3e50;
-  border-bottom: 1px solid #ccc;
-  padding-bottom: 5px;
-}
-.cv-entry {
-  margin-bottom: 1em;
-}
-.cv-entry strong {
-  display: inline-block;
-  min-width: 130px;
-  color: #2c3e50;
-}
-.cv-list {
-  padding-left: 1em;
-}
 
+    pre {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+      overflow-x: auto;
+      max-width: 800px;
+      margin: 30px auto;
+      text-align: left;
+    }
+
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>CV2Skills</h1>
-    <p>Chargez votre CV pour le transformer automatiquement en un dossier de compétences.</p>
-    <input type="file" id="cvFile" />
-    <button onclick="sendCV()">Analyser</button>
-    <button onclick="exportToPDF()">Télécharger en PDF</button>
-    <h2>Résultat :</h2>
-  <div id="output">Aucun fichier analysé.</div>
-  </div>
-<iframe id="previewFrame" style="display:none; width:1000px; height:1400px;" src="page.html"></iframe>
+
+  <h1>Convertir mon CV en Dossier de Compétences</h1>
+
+  <form id="uploadForm">
+    <input type="file" id="cvFile" name="cv" accept=".pdf,.doc,.docx,.txt" required />
+    <button type="submit">Analyser mon CV</button>
+  </form>
+
+  <pre id="output" class="hidden"></pre>
 
   <script>
-function injectIntoPreview(cvData) {
-  const frame = document.getElementById('previewFrame');
-  frame.onload = () => {
-    const doc = frame.contentDocument || frame.contentWindow.document;
+    document.getElementById("uploadForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const fileInput = document.getElementById("cvFile");
+      const output = document.getElementById("output");
+      const file = fileInput.files[0];
 
-    // Remplir les champs
-    doc.getElementById("nom_prenom").textContent = cvData["Informations Personnelles"].Prénom + " " + cvData["Informations Personnelles"].Nom;
-
-    doc.getElementById("competences").innerHTML =
-      "<h2>Compétences Techniques</h2><ul>" +
-      cvData["Compétences Techniques"].map(c => `<li>${c}</li>`).join('') +
-      "</ul>";
-
-    doc.getElementById("experience").innerHTML =
-      "<h2>Expériences Professionnelles</h2>" +
-      cvData["Expériences Professionnelles"].map(exp => `
-        <div>
-          <strong>${exp.Poste}</strong> chez <strong>${exp.Entreprise}</strong><br/>
-          ${exp.Période}<br/>
-          <ul>${exp.Missions.map(m => `<li>${m}</li>`).join('')}</ul>
-        </div>
-      `).join('');
-
-    doc.getElementById("formations").innerHTML =
-      "<h2>Formations et Certifications</h2>" +
-      cvData["Formation et Certifications"].map(f => `
-        <div>
-          ${f["Année"]} – ${f["Diplôme/Certification"]} à ${f["Établissement"]}
-        </div>
-      `).join('');
-
-    doc.getElementById("langues").innerHTML =
-      "<h2>Langues</h2>" +
-      cvData["Langues"].map(l => `
-        <div>${l.Langue} – ${l.Niveau}</div>
-      `).join('');
-
-    doc.getElementById("projets").innerHTML =
-      "<h2>Projets Intéressants</h2><ul>" +
-      cvData["Projets Intéressants"].map(p => `<li>${p}</li>`).join('') +
-      "</ul>";
-  };
-}
-
-function renderCV(data) {
-  const output = document.getElementById('output');
-  output.innerHTML = '';
-
-  // Informations personnelles
-  const perso = data["Informations Personnelles"];
-  output.innerHTML += `
-    <div class="cv-section">
-      <h2>Informations Personnelles</h2>
-      <div><strong>Nom :</strong> ${perso.Nom}</div>
-      <div><strong>Prénom :</strong> ${perso.Prénom}</div>
-      <div><strong>Email :</strong> ${perso.Email}</div>
-      <div><strong>Téléphone :</strong> ${perso.Téléphone}</div>
-      <div><strong>Adresse :</strong> ${perso.Adresse}</div>
-    </div>
-  `;
-
-  // Compétences
-  output.innerHTML += `
-    <div class="cv-section">
-      <h2>Compétences Techniques</h2>
-      <ul class="cv-list">${data["Compétences Techniques"].map(c => `<li>${c}</li>`).join('')}</ul>
-    </div>
-  `;
-
-  // Langues
-  output.innerHTML += `
-    <div class="cv-section">
-      <h2>Langues</h2>
-      ${data.Langues.map(lang => `<div>${lang.Langue} - ${lang.Niveau}</div>`).join('')}
-    </div>
-  `;
-
-  // Méthodologies
-  if (data["Méthodologies"]?.length) {
-    output.innerHTML += `
-      <div class="cv-section">
-        <h2>Méthodologies</h2>
-        <ul class="cv-list">${data["Méthodologies"].map(m => `<li>${m}</li>`).join('')}</ul>
-      </div>
-    `;
-  }
-
-  // Expériences Clés Récentes
-  if (data["Expériences Clés Récentes"]?.length) {
-    output.innerHTML += `
-      <div class="cv-section">
-        <h2>Expériences Clés Récentes</h2>
-        ${data["Expériences Clés Récentes"].map(exp => `
-          <div class="cv-entry">
-            <strong>Année :</strong> ${exp.Année}<br>
-            <strong>Entreprise :</strong> ${exp.Entreprise}<br>
-            <strong>Poste :</strong> ${exp.Intitulé}<br>
-            <div>${exp.Détails}</div>
-          </div>
-        `).join('')}
-      </div>
-    `;
-  }
-
-  // Expériences professionnelles
-  if (data["Expériences Professionnelles"]?.length) {
-    output.innerHTML += `
-      <div class="cv-section">
-        <h2>Expériences Professionnelles</h2>
-        ${data["Expériences Professionnelles"].map(exp => `
-          <div class="cv-entry">
-            <strong>Poste :</strong> ${exp.Poste}<br>
-            <strong>Entreprise :</strong> ${exp.Entreprise}<br>
-            <strong>Période :</strong> ${exp.Période}<br>
-            <strong>Missions :</strong>
-            <ul class="cv-list">${exp.Missions.map(m => `<li>${m}</li>`).join('')}</ul>
-          </div>
-        `).join('')}
-      </div>
-    `;
-  }
-
-  // Formations
-  if (data["Formation et Certifications"]?.length) {
-    output.innerHTML += `
-      <div class="cv-section">
-        <h2>Formation et Certifications</h2>
-        ${data["Formation et Certifications"].map(f => `
-          <div class="cv-entry">
-            <strong>Année :</strong> ${f.Année}<br>
-            <strong>Diplôme/Certification :</strong> ${f["Diplôme/Certification"]}<br>
-            <strong>Établissement :</strong> ${f.Établissement}
-          </div>
-        `).join('')}
-      </div>
-    `;
-  }
-
-  // Projets intéressants
-  if (data["Projets Intéressants"]?.length) {
-    output.innerHTML += `
-      <div class="cv-section">
-        <h2>Projets Intéressants</h2>
-        <ul class="cv-list">${data["Projets Intéressants"].map(p => `<li>${p}</li>`).join('')}</ul>
-      </div>
-    `;
-  }
-}
-
-function exportToPDF() {
-  const frame = document.getElementById('previewFrame');
-  const frameDoc = frame.contentDocument || frame.contentWindow.document;
-  const content = frameDoc.body;
-
-  const opt = {
-    margin:       0,
-    filename:     'cv2skills.pdf',
-    image:        { type: 'jpeg', quality: 0.98 },
-    html2canvas:  { scale: 2 },
-    jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-  };
-
-  html2pdf().from(content).set(opt).save();
-}
-
-    async function sendCV() {
-      const fileInput = document.getElementById('cvFile');
-      const output = document.getElementById('output');
-
-      if (!fileInput.files.length) {
+      if (!file) {
         alert("Veuillez sélectionner un fichier.");
         return;
       }
 
       const formData = new FormData();
-      formData.append("cv", fileInput.files[0]);
+      formData.append("cv", file);
 
+      output.classList.remove("hidden");
       output.textContent = "Analyse en cours...";
 
       try {
@@ -263,15 +84,30 @@ function exportToPDF() {
           body: formData
         });
 
-        const data = await response.json();
-        renderCV(data.data); 
-        injectIntoPreview(data.data);
-        localStorage.setItem("cv_data", JSON.stringify(data.data));
+        if (!response.ok) throw new Error("Erreur lors de l'envoi du fichier.");
+
+        const json = await response.json();
+        // Afficher le JSON formaté à l'écran
+        output.textContent = JSON.stringify(json.data, null, 2);
+        // Stocker le JSON dans une clé temporaire pour le téléchargement
+        window.cv2skillsTempKey = 'cv2skills_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+        localStorage.setItem(window.cv2skillsTempKey, JSON.stringify(json.data));
+        // Afficher le bouton de téléchargement
+        if (!document.getElementById('downloadBtn')) {
+          const btn = document.createElement('button');
+          btn.id = 'downloadBtn';
+          btn.textContent = 'Télécharger en PDF';
+          btn.style.marginLeft = '20px';
+          btn.onclick = function() {
+            window.open('page.html?key=' + encodeURIComponent(window.cv2skillsTempKey), '_blank');
+          };
+          output.parentNode.insertBefore(btn, output.nextSibling);
+        }
       } catch (error) {
-        output.textContent = "Erreur : " + error.message;
+        output.textContent = "❌ Erreur : " + error.message;
       }
-    }
+    });
   </script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 </body>
 </html>

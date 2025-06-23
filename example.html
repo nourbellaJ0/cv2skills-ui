@@ -2,50 +2,229 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CV2Skills – Export</title>
+  <title>CV Devoteam</title>
   <style>
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
     body {
+      margin: 0;
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f9f9f9;
+    }
+
+    .page {
+      width: 210mm;
+      height: 297mm;
       padding: 40px;
+      box-sizing: border-box;
+      position: relative;
+      page-break-after: always;
+      overflow: hidden;
     }
 
-    h1 {
-      text-align: center;
-      color: #2c3e50;
+    .bg-top, .bg-bottom {
+      position: absolute;
+      background: #f0eadc;
+      border-radius: 50%;
+      z-index: 0;
     }
 
-    pre {
-      background: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+    .bg-top {
+      width: 1400px;
+      height: 1400px;
+      top: -1000px;
+      left: -1000px;
+    }
+
+    .bg-bottom {
+      width: 800px;
+      height: 800px;
+      bottom: -500px;
+      right: -500px;
+    }
+
+    .logo-header {
+      display: flex;
+      align-items: center;
+      z-index: 1;
+      position: relative;
+    }
+
+    .logo-header img {
+      width: 35px;
+      margin-right: 10px;
+    }
+
+    .devoteam {
+      font-weight: bold;
+      font-size: 18px;
+      color: #2c2c2c;
+    }
+
+    .name {
+      margin-left: 50px;
+      margin-top: 5px;
+      font-weight: bold;
+      color: #e63946;
+      z-index: 1;
+      position: relative;
+    }
+
+    h3 {
+      color: #e63946;
+      text-transform: uppercase;
       font-size: 14px;
-      overflow-x: auto;
-      max-width: 1000px;
-      margin: auto;
+      margin-top: 40px;
+      margin-bottom: 10px;
+      z-index: 1;
+      position: relative;
     }
 
-    .btn-download {
-      display: block;
-      margin: 30px auto;
-      padding: 12px 24px;
-      background-color: #e63946;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      font-size: 16px;
-      text-decoration: none;
+    .section {
+      margin-bottom: 30px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .languages {
+      display: flex;
+      gap: 50px;
+      margin-top: 30px;
+      margin-left: 10px;
+    }
+
+    .lang {
       text-align: center;
-      cursor: pointer;
+    }
+
+    .circle {
+      width: 65px;
+      height: 65px;
+      border: 2px solid #e63946;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 6px auto;
+      font-size: 10px;
+      font-weight: bold;
+      line-height: 13px;
+    }
+
+    .label {
+      font-size: 10px;
+      color: #000;
+    }
+
+    /* PAGE 2 STYLES */
+    .top-right-logo {
+      position: absolute;
+      top: 30px;
+      right: 30px;
+      display: flex;
+      align-items: center;
+      font-size: 12px;
+      color: #444;
+      z-index: 1;
+    }
+
+    .top-right-logo img {
+      width: 20px;
+      margin-right: 5px;
+    }
+
+    .title-centered {
+      text-align: center;
+      color: #e63946;
+      text-transform: uppercase;
+      font-size: 14px;
+      font-weight: bold;
+      margin-top: 20px;
+      z-index: 1;
+      position: relative;
+    }
+
+    .circle-bottom-left {
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      background: #f0eadc;
+      border-radius: 50%;
+      bottom: -150px;
+      left: -150px;
+      z-index: 0;
     }
   </style>
 </head>
 <body>
 
-  <h1>Exporter votre CV formaté</h1>
+  <!-- PAGE 1 -->
+  <div class="page">
+    <div class="bg-top"></div>
+    <div class="bg-bottom"></div>
 
-  <a href="page.html" class="btn-download">Télécharger</a>
+    <div class="logo-header">
+       <img src="data:image/png;base64,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".png" alt="Logo Devoteam" class="logo" />
+      <div class="devoteam">devoteam</div>
+    </div>
+    <div class="name">Nom prénom</div>
 
-  <h2>Exemple de structure JSON</h2
+    <div class="section">
+      <h3>Formations et certifications</h3>
+      <div>Certification 1</div>
+      <div>Certification 2</div>
+      <div>Certification 3</div>
+    </div>
+
+    <div class="section">
+      <h3>Expériences clés récentes</h3>
+      <div>Mission A</div>
+      <div>Mission B</div>
+    </div>
+
+    <div class="section">
+      <h3>Projets intéressants</h3>
+      <div>Projet 1</div>
+      <div></div>Projet 2</div>
+    </div>
+
+    <div class="section">
+      <h3>Langues</h3>
+      <div class="languages">
+        <div class="lang">
+          <div class="circle">Natif</div>
+          <div class="label">Arabe</div>
+        </div>
+        <div class="lang">
+          <div class="circle">Courant<br>C2</div>
+          <div class="label">Français</div>
+        </div>
+        <div class="lang">
+          <div class="circle">Professionnel<br>B2</div>
+          <div class="label">Anglais</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE 2 -->
+  <div class="page">
+    <div class="bg-top" style="top: -800px; right: -800px; left: auto;"></div>
+    <div class="circle-bottom-left"></div>
+
+    <div class="logo-header">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/3/39/Devoteam_logo_2021.svg" alt="logo">
+      <div class="devoteam">devoteam</div>
+    </div>
+
+    
+
+    <div class="title-centered">Expériences professionnelles</div>
+
+  
+  </div>
+
+</body>
+</html>

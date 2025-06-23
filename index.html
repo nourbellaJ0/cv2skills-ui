@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CV2Skills – Convertisseur de CV</title>
+  <title>CV2Skills – Dossier de Compétences</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background-color: #f9fbfd;
+      background-color: #eef3f7;
       margin: 0;
       padding: 0;
     }
@@ -37,23 +37,42 @@
     }
     #preview {
       margin-top: 30px;
-      padding: 20px;
-      border: 1px solid #ccc;
     }
     .section {
-      margin-bottom: 20px;
+      margin-bottom: 40px;
     }
     .section h3 {
-      border-bottom: 1px solid #ddd;
-      padding-bottom: 5px;
-      color: #34495e;
+      font-size: 22px;
+      color: #ffffff;
+      background: #2c3e50;
+      padding: 10px 20px;
+      border-radius: 20px;
+      width: fit-content;
     }
     .section ul {
       list-style: none;
       padding-left: 0;
     }
     .section ul li {
-      margin-bottom: 5px;
+      margin-bottom: 10px;
+      padding: 10px;
+      background: #f1f5fa;
+      border-radius: 10px;
+    }
+    .lang-level {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 5px;
+    }
+    .circle {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #ccc;
+    }
+    .circle.active {
+      background: #2c3e50;
     }
   </style>
 </head>
@@ -119,51 +138,59 @@
 
         const content = data[section];
 
-        if (Array.isArray(content)) {
-          const list = document.createElement("ul");
+        if (section.toLowerCase().includes("langue") && Array.isArray(content)) {
+          content.forEach(langue => {
+            const langDiv = document.createElement("div");
+            langDiv.innerHTML = `<strong>${langue.Nom || ""}</strong>`;
+            const level = langue.Niveau || "";
+            const levelDiv = document.createElement("div");
+            levelDiv.className = 'lang-level';
+            const levels = ["A1", "A2", "B1", "B2", "C1", "C2"];
+            levels.forEach(lvl => {
+              const circle = document.createElement("div");
+              circle.className = "circle" + (lvl === level ? " active" : "");
+              levelDiv.appendChild(circle);
+            });
+            langDiv.appendChild(levelDiv);
+            div.appendChild(langDiv);
+          });
+        } else if (Array.isArray(content)) {
           content.forEach(item => {
             const li = document.createElement("li");
-            if (typeof item === "object") {
-  const subList = document.createElement("ul");
-  for (const key in item) {
-    const subItem = document.createElement("li");
-    subItem.innerHTML = `<strong>${key}:</strong> ${item[key] || "—"}`;
-    subList.appendChild(subItem);
-  }
-  li.appendChild(subList);
-} else {
-  li.textContent = item;
-}
-
-            list.appendChild(li);
+            li.textContent = (typeof item === 'string') ? item : JSON.stringify(item);
+            const ul = document.createElement("ul");
+            ul.appendChild(li);
+            div.appendChild(ul);
           });
-          div.appendChild(list);
         } else if (typeof content === "object") {
-          const list = document.createElement("ul");
+          const ul = document.createElement("ul");
           for (const key in content) {
             const li = document.createElement("li");
-            li.innerHTML = `<strong>${key}:</strong> ${content[key]}`;
-            list.appendChild(li);
+            li.innerHTML = `<strong>${key}:</strong> ${content[key] || "—"}`;
+            ul.appendChild(li);
           }
-          div.appendChild(list);
+          div.appendChild(ul);
+        } else {
+          const p = document.createElement("p");
+          p.textContent = content;
+          div.appendChild(p);
         }
 
         container.appendChild(div);
       }
     }
-function downloadPDF() {
-  const element = document.getElementById("preview");
-  const opt = {
-    margin: 0.5,
-    filename: 'Dossier_de_competences.pdf',
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { scale: 3 }, // meilleure résolution
-    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
-  };
-  html2pdf().set(opt).from(element).save();
-}
 
-   
-   </script>
+    function downloadPDF() {
+      const element = document.getElementById("preview");
+      const opt = {
+        margin: 0.5,
+        filename: 'Dossier_de_competences.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 3 },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(element).save();
+    }
+  </script>
 </body>
 </html>

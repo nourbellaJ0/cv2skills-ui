@@ -123,7 +123,18 @@
           const list = document.createElement("ul");
           content.forEach(item => {
             const li = document.createElement("li");
-            li.textContent = typeof item === "object" ? JSON.stringify(item, null, 2) : item;
+            if (typeof item === "object") {
+  const subList = document.createElement("ul");
+  for (const key in item) {
+    const subItem = document.createElement("li");
+    subItem.innerHTML = `<strong>${key}:</strong> ${item[key] || "—"}`;
+    subList.appendChild(subItem);
+  }
+  li.appendChild(subList);
+} else {
+  li.textContent = item;
+}
+
             list.appendChild(li);
           });
           div.appendChild(list);
@@ -140,18 +151,19 @@
         container.appendChild(div);
       }
     }
+function downloadPDF() {
+  const element = document.getElementById("preview");
+  const opt = {
+    margin: 0.5,
+    filename: 'Dossier_de_competences.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 3 }, // meilleure résolution
+    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+  };
+  html2pdf().set(opt).from(element).save();
+}
 
-    function downloadPDF() {
-      const element = document.getElementById("preview");
-      const opt = {
-        margin:       0.3,
-        filename:     'Dossier_de_competences.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
-        jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-      };
-      html2pdf().set(opt).from(element).save();
-    }
-  </script>
+   
+   </script>
 </body>
 </html>

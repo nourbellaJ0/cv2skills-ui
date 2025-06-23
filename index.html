@@ -74,6 +74,24 @@
     .circle.active {
       background: #2c3e50;
     }
+    .cv-block-title {
+      font-weight: bold;
+      font-size: 18px;
+      color: #2c3e50;
+      margin-bottom: 2px;
+    }
+    .cv-block-desc {
+      font-size: 15px;
+      color: #555;
+      margin-bottom: 4px;
+      margin-left: 2px;
+    }
+    .cv-block-meta {
+      font-size: 13px;
+      color: #888;
+      margin-bottom: 2px;
+      margin-left: 2px;
+    }
   </style>
 </head>
 <body>
@@ -126,59 +144,113 @@
     }
 
     function displayCV(data) {
-      const container = document.getElementById("cvContent");
-      container.innerHTML = "";
+  const container = document.getElementById("cvContent");
+  container.innerHTML = "";
 
-      for (const section in data) {
-        const div = document.createElement("div");
-        div.className = "section";
-        const title = document.createElement("h3");
-        title.textContent = section;
-        div.appendChild(title);
+  // Titres harmonisés
+  const sectionTitles = {
+    certifications: "Certifications",
+    competences: "Compétences",
+    competences_techniques: "Compétences Techniques",
+    experience_professionnelle: "Expérience Professionnelle",
+    formation: "Formation",
+    informations_personnelles: "Informations Personnelles",
+    langues: "Langues",
+    methodologie: "Méthodologies",
+    projets: "Projets",
+    centres_interet: "Centres d'intérêt"
+  };
 
-        const content = data[section];
+  // Ordre d'affichage
+  const sectionOrder = [
+    "certifications",
+    "competences",
+    "competences_techniques",
+    "experience_professionnelle",
+    "formation",
+    "informations_personnelles",
+    "langues",
+    "methodologie",
+    "projets",
+    "centres_interet"
+  ];
 
-        if (section.toLowerCase().includes("langue") && Array.isArray(content)) {
-          content.forEach(langue => {
-            const langDiv = document.createElement("div");
-            langDiv.innerHTML = `<strong>${langue.Nom || ""}</strong>`;
-            const level = langue.Niveau || "";
-            const levelDiv = document.createElement("div");
-            levelDiv.className = 'lang-level';
-            const levels = ["A1", "A2", "B1", "B2", "C1", "C2"];
-            levels.forEach(lvl => {
-              const circle = document.createElement("div");
-              circle.className = "circle" + (lvl === level ? " active" : "");
-              levelDiv.appendChild(circle);
-            });
-            langDiv.appendChild(levelDiv);
-            div.appendChild(langDiv);
-          });
-        } else if (Array.isArray(content)) {
-          content.forEach(item => {
-            const li = document.createElement("li");
-            li.textContent = (typeof item === 'string') ? item : JSON.stringify(item);
-            const ul = document.createElement("ul");
-            ul.appendChild(li);
-            div.appendChild(ul);
-          });
-        } else if (typeof content === "object") {
-          const ul = document.createElement("ul");
-          for (const key in content) {
-            const li = document.createElement("li");
-            li.innerHTML = `<strong>${key}:</strong> ${content[key] || "—"}`;
-            ul.appendChild(li);
-          }
-          div.appendChild(ul);
-        } else {
-          const p = document.createElement("p");
-          p.textContent = content;
-          div.appendChild(p);
+  sectionOrder.forEach(section => {
+    if (!data[section]) return;
+    const div = document.createElement("div");
+    div.className = "section";
+    const title = document.createElement("h3");
+    title.textContent = sectionTitles[section] || section;
+    div.appendChild(title);
+    const content = data[section];
+
+    // Cas des expériences, formations, projets, certifications (tableaux d'objets)
+    if (Array.isArray(content) && content.length && typeof content[0] === 'object') {
+      content.forEach(item => {
+        const block = document.createElement("div");
+        // Titre principal (poste, diplôme, projet, etc.)
+        let mainTitle = item.Poste || item.Diplôme || item.Titre || item.Description || item.Entreprise || item.Nom || item.Role || item['Titre du projet'] || item['Description du projet'] || item['Certification'] || null;
+        if (mainTitle) {
+          const t = document.createElement("div");
+          t.className = "cv-block-title";
+          t.textContent = mainTitle;
+          block.appendChild(t);
         }
-
-        container.appendChild(div);
-      }
+        // Description (si présente)
+        if (item.Description && typeof item.Description === 'string') {
+          const d = document.createElement("div");
+          d.className = "cv-block-desc";
+          d.textContent = item.Description;
+          block.appendChild(d);
+        } else if (item.Description && Array.isArray(item.Description)) {
+          const d = document.createElement("div");
+          d.className = "cv-block-desc";
+          d.innerHTML = item.Description.map(desc => `<div>${desc}</div>`).join('');
+          block.appendChild(d);
+        }
+        // Autres infos (métadonnées)
+        Object.keys(item).forEach(key => {
+          if (["Poste","Diplôme","Titre","Description","Nom","Role","Titre du projet","Description du projet","Certification"].includes(key)) return;
+          if (item[key]) {
+            const meta = document.createElement("div");
+            meta.className = "cv-block-meta";
+            meta.innerHTML = `<strong>${key} :</strong> ${item[key]}`;
+            block.appendChild(meta);
+          }
+        });
+        div.appendChild(block);
+      });
     }
+    // Cas des listes simples (compétences, méthodologies, etc.)
+    else if (Array.isArray(content)) {
+      const ul = document.createElement("ul");
+      content.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        ul.appendChild(li);
+      });
+      div.appendChild(ul);
+    }
+    // Cas objet simple (informations personnelles)
+    else if (typeof content === 'object' && content !== null) {
+      const ul = document.createElement("ul");
+      for (const key in content) {
+        const li = document.createElement("li");
+        li.innerHTML = `<strong>${key} :</strong> ${content[key]}`;
+        ul.appendChild(li);
+      }
+      div.appendChild(ul);
+    }
+    // Cas texte simple
+    else if (typeof content === 'string') {
+      const p = document.createElement("p");
+      p.textContent = content;
+      div.appendChild(p);
+    }
+    container.appendChild(div);
+  });
+}
+
 
     function downloadPDF() {
       const element = document.getElementById("preview");

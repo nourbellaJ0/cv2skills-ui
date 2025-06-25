@@ -16,17 +16,19 @@
     }
     .page {
       width: 210mm;
-      height: 297mm;
+      /* On retire height: 297mm; et on ajuste la hauteur pour ne pas dépasser A4 avec le padding */
+      min-height: calc(297mm - 80px);
       padding: 40px;
       box-sizing: border-box;
       position: relative;
       overflow: hidden;
       background: #fff;
+      margin: 0;
     }
     .page:not(:last-child) {
       page-break-after: always;
     }
-    .bg-top, .bg-bottom {
+    .bg-top, .bg-bottom, .circle-bottom-left {
       position: absolute;
       background: #f0eadc;
       border-radius: 50%;
@@ -140,6 +142,11 @@
       left: -150px;
       z-index: 0;
     }
+    /* Supprimer les marges inutiles qui pourraient créer des pages vides */
+    #cv-wrapper {
+      margin: 0;
+      padding: 0;
+    }
   </style>
 </head>
 <body>
@@ -173,11 +180,26 @@
 
     const hasContent = arr => Array.isArray(arr) && arr.length > 0;
     const fullName = `${data["Informations Personnelles"]?.Prénom || ""} ${data["Informations Personnelles"]?.Nom || ""}`.trim();
+    const fileName = `cv2skills_${fullName.replace(/\s+/g, '_') || 'nom_prenom'}.pdf`;
 
     // PAGE 1
     let formations = hasContent(data["Formation et Certifications"]) ? data["Formation et Certifications"].map(f => `<div>${f["Année"] || ''} – ${f["Diplôme/Certification"] || ''} à ${f["Établissement"] || ''}</div>`).join('') : '';
-    let expCle = hasContent(data["Expériences Clés Récentes"]) ? data["Expériences Clés Récentes"].map(e => `<div>${e.Poste || ''} ${e.Entreprise ? 'chez ' + e.Entreprise : ''} ${e.Période ? '(' + e.Période + ')' : ''}</div>`).join('') : '';
-    let projets = hasContent(data["Projets Intéressants"]) ? data["Projets Intéressants"].map(p => `<div>${p}</div>`).join('') : '';
+    let expCle = hasContent(data["Expériences Clés Récentes"]) ? data["Expériences Clés Récentes"].map(e => {
+      if (e.Intitulé) {
+        return `<div>• ${e.Intitulé}</div>`;
+      } else if (e.Titre) {
+        return `<div>• ${e.Titre}${e.Description ? ` <span style='color:#888;font-size:12px;'>(${e.Description})</span>` : ''}</div>`;
+      }
+      return '';
+    }).join('') : '';
+    let projets = hasContent(data["Projets Intéressants"]) ? data["Projets Intéressants"].map(p => {
+      if (typeof p === 'string') {
+        return `<div>• ${p}</div>`;
+      } else if (p.Titre) {
+        return `<div>• ${p.Titre}${p.Description ? ` <span style='color:#888;font-size:12px;'>(${p.Description})</span>` : ''}</div>`;
+      }
+      return '';
+    }).join('') : '';
     let langues = hasContent(data["Langues"]) ? data["Langues"].map(l => `
       <div class="lang">
         <div class="circle">${l.Niveau ? l.Niveau.replace(/\n/g, '<br>') : ''}</div>
@@ -269,11 +291,11 @@
       setTimeout(() => {
         const opt = {
           margin: 0,
-          filename: 'cv2skills.pdf',
+          filename: fileName,
           image: { type: 'jpeg', quality: 0.98 },
           html2canvas: { scale: 2 },
           jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-          pagebreak: { mode: ['css'] } // Correction ici : uniquement css
+          pagebreak: { mode: ['css'] }
         };
         html2pdf().from(document.getElementById("cv-wrapper")).set(opt).save().then(() => {
           window.close();

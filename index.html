@@ -98,8 +98,26 @@
           btn.id = 'downloadBtn';
           btn.textContent = 'Télécharger en PDF';
           btn.style.marginLeft = '20px';
-          btn.onclick = function() {
-            window.open('page.html?key=' + encodeURIComponent(window.cv2skillsTempKey), '_blank');
+          btn.onclick = async function() {
+            const jsonData = localStorage.getItem(window.cv2skillsTempKey);
+            const formData = new FormData();
+            formData.append("jsonData", jsonData);
+
+            const response = await fetch("http://localhost:5000/generate-pdf", {
+              method: "POST",
+              body: formData
+            });
+
+            if (!response.ok) {
+              alert("Erreur lors de la génération du PDF.");
+              return;
+            }
+
+            const blob = await response.blob();
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = "cv2skills_result.pdf";
+            link.click();
           };
           output.parentNode.insertBefore(btn, output.nextSibling);
         }
